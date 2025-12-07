@@ -1,0 +1,24 @@
+Dear all,
+
+As part of the Advanced Deep Learning Project module, you will be working on validation projects to apply the advanced concepts covered during the course.
+
+Important Information:
+
+    Group work: Each group should consist of 5 to 6 students. The same groups will be maintained for the next semester’s project.
+    Validation: Scheduled for Week 14.
+    Project assignment: Topics will be assigned during next week’s class sessions by the instructors.
+    Methodology to use: CRISP-DM (Cross Industry Standard Process for Data Mining).
+    Expected deliverables:
+        Project presentation
+        Written report detailing your approach and results
+        Notebook with well-commented code for your experiments
+
+Additional instructions:
+
+    Review your assigned topic as soon as it is given and start organizing your work within your team.
+    Follow good coding practices, ensure proper documentation, and make your results reproducible.
+    If you have any questions regarding the project or methodology, feel free to contact me.
+
+Good luck and may your models be efficient! 😊
+
+Best regards

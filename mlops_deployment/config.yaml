@@ -1,0 +1,33 @@
+# Model Configuration
+model:
+  name: "mlp"
+  architecture: [500, 500, 500]
+  learning_rate: 0.01
+  alpha: 0.01
+  max_iter: 3000
+  random_state: 42
+
+# Data Configuration
+data:
+  train_size: 0.7
+  test_size: 0.3
+  random_state: 42
+  data_path: "../data.csv"
+
+# Preprocessing
+preprocessing:
+  scaler_path: "models/scaler.pkl"
+  drop_columns: ["id", "Unnamed: 32"]
+
+# Model Paths
+paths:
+  model_dir: "models"
+  model_file: "models/mlp_model.pkl"
+  scaler_file: "models/scaler.pkl"
+
+# API Configuration
+api:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+
