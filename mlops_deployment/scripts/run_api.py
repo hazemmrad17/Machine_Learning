@@ -20,7 +20,7 @@ if __name__ == "__main__":
     api_config = config.get('api', {})
     uvicorn.run(
         "api.app:app",
-        host=api_config.get('host', '0.0.0.0'),
+        host=api_config.get('host', 'localhost'),
         port=api_config.get('port', 8000),
         reload=api_config.get('debug', False)
     )

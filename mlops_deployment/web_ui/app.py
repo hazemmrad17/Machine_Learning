@@ -576,7 +576,7 @@ def main():
         Or in a separate terminal:
         ```bash
         cd mlops_deployment
-        python -m uvicorn api.app:app --host 0.0.0.0 --port 8000
+        python -m uvicorn api.app:app --host localhost --port 8000
         ```
         """)
         return

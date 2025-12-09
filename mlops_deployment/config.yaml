@@ -27,7 +27,7 @@ paths:
 
 # API Configuration
 api:
-  host: "0.0.0.0"
+  host: "localhost"
   port: 8000
   debug: false
 

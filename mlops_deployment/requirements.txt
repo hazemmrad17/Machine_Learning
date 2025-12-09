@@ -9,17 +9,11 @@ kaleido>=0.2.1
 shap>=0.42.0
 reportlab>=4.0.0
 fpdf2>=2.7.0
-streamlit-option-menu>=0.3.6
-streamlit-extras>=0.3.0
 
 # API framework
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 pydantic>=2.9.0
-
-# Web UI
-streamlit>=1.40.0
-requests>=2.32.0
 
 # Utilities
 python-dotenv>=1.0.0
