@@ -82,3 +82,10 @@ mlops_deployment/models/*.joblib
 # Keep config files
 !mlops_deployment/config.yaml
 
+# Frontend
+modular_ml_pipeline/frontend/node_modules/
+modular_ml_pipeline/frontend/dist/
+modular_ml_pipeline/frontend/.vite/
+modular_ml_pipeline/frontend/build/
+*.log
+
