@@ -4,7 +4,8 @@
 
 @layer base {
   body {
-    @apply bg-black text-white;
+    @apply text-white;
+    background: transparent;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -15,17 +16,19 @@
   
   #root {
     min-height: 100vh;
-    background: #000;
+    background: transparent;
   }
 }
 
 @layer components {
   .glass {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
   
   .glass-strong {
     @apply bg-white/20 backdrop-blur-lg border border-white/30;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
   }
   
   .card {

@@ -2,6 +2,11 @@ import { motion } from 'framer-motion'
 import { Brain, Zap, Layers } from 'lucide-react'
 
 const ModelSelector = ({ modelType, setModelType, availableModels }) => {
+  // Debug: Log available models to help troubleshoot
+  if (availableModels && availableModels.length > 0) {
+    console.log('Available models from API:', availableModels)
+  }
+  
   const models = [
     { value: 'all', label: 'Tous (Consensus)', icon: Layers, color: 'from-cyan-500 to-blue-500' },
     { value: 'linear', label: 'Linear', icon: Brain, color: 'from-blue-400 to-cyan-400' },
@@ -21,9 +26,29 @@ const ModelSelector = ({ modelType, setModelType, availableModels }) => {
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
         {models.map((model) => {
           const Icon = model.icon
+          // Check if model is available - API returns lowercase model names like 'linear', 'knn_l1', 'gru_svm'
+          // Normalize both the model value and available models to lowercase for comparison
+          const normalizedModelValue = model.value.toLowerCase()
+          const normalizedAvailable = Array.isArray(availableModels) 
+            ? availableModels.map(m => String(m).toLowerCase().trim())
+            : []
+          
+          // Debug specific model
+          if (model.value === 'gru_svm') {
+            console.log('GRU-SVM check:', {
+              modelValue: model.value,
+              normalizedValue: normalizedModelValue,
+              availableModels: normalizedAvailable,
+              matches: normalizedAvailable.filter(a => a.includes('gru') || a.includes('svm'))
+            })
+          }
+          
+          // Check for exact match or partial match (for gru_svm, check for 'gru' or 'svm' in the name)
           const isAvailable = model.value === 'all' || 
-            availableModels.includes(model.value.toUpperCase()) ||
-            availableModels.includes(model.value.toUpperCase().replace('_', '-'))
+            normalizedAvailable.includes(normalizedModelValue) ||
+            normalizedAvailable.includes(normalizedModelValue.replace('_', '-')) ||
+            normalizedAvailable.includes(normalizedModelValue.replace('-', '_')) ||
+            (model.value === 'gru_svm' && normalizedAvailable.some(a => a.includes('gru') && a.includes('svm')))
           const isSelected = modelType === model.value
           
           return (

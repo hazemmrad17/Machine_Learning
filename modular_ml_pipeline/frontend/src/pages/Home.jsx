@@ -4,7 +4,6 @@ import { ArrowRight, Activity, BarChart3, Zap, Shield, TrendingUp } from 'lucide
 import { useQuery } from '@tanstack/react-query'
 import { checkHealth, getModels } from '../services/api'
 import toast from 'react-hot-toast'
-import NeuralNetworkHero from '../components/ui/neural-network-hero'
 
 const Home = () => {
   // Vérifier la santé de l'API
@@ -72,32 +71,109 @@ const Home = () => {
     },
   }
 
-  // Get model count for badge
-  const modelCount = models?.available_models?.length || 0
-  const apiStatus = health?.status === 'healthy' ? 'Connectée' : 'Déconnectée'
-
   return (
-    <div className="relative">
-      {/* Neural Network Hero */}
-      <NeuralNetworkHero
-        title="Where algorithms become art."
-        description="Application MLOps avancée utilisant l'apprentissage automatique pour prédire la malignité des tumeurs avec une précision exceptionnelle."
-        badgeText={`${modelCount} Modèles ML`}
-        badgeLabel={apiStatus}
-        ctaButtons={[
-          { text: "Commencer une Prédiction", href: "/predict", primary: true },
-          { text: "Comparer les Modèles", href: "/compare" }
-        ]}
-        microDetails={[
-          health?.status === 'healthy' ? 'API Connectée' : 'API Déconnectée',
-          `${modelCount} Modèles Disponibles`,
-          'Prédiction en Temps Réel'
-        ]}
-      />
+    <div className="container mx-auto px-4 py-12">
+        {/* Hero Section */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="text-center mb-16"
+      >
+        <motion.div
+          variants={itemVariants}
+          className="inline-block mb-4"
+        >
+          <motion.div
+            animate={{ 
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ 
+              duration: 3,
+              repeat: Infinity,
+              repeatType: 'reverse'
+            }}
+            className="inline-block p-4 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl mb-6"
+          >
+            <Activity className="w-16 h-16 text-white" />
+          </motion.div>
+        </motion.div>
 
-      {/* Content Section Below Hero */}
-      <div className="container mx-auto px-4 py-12 relative z-10 bg-black/50 backdrop-blur-sm">
-        {/* Features Grid */}
+        <motion.h1
+          variants={itemVariants}
+          className="text-5xl md:text-7xl font-bold mb-6"
+        >
+          <span className="gradient-text">Détection du Cancer</span>
+          <br />
+          <span className="text-white">du Sein</span>
+        </motion.h1>
+
+        <motion.p
+          variants={itemVariants}
+          className="text-xl md:text-2xl text-white/70 mb-8 max-w-3xl mx-auto"
+        >
+          Application MLOps avancée utilisant l'apprentissage automatique pour 
+          prédire la malignité des tumeurs avec une précision exceptionnelle
+        </motion.p>
+
+        {/* Status de l'API */}
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center justify-center space-x-4 mb-8"
+        >
+          <div className={`flex items-center space-x-2 px-4 py-2 rounded-full ${
+            health?.status === 'healthy' 
+              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+              : 'bg-red-500/20 text-red-400 border border-red-500/30'
+          }`}>
+            <div className={`w-2 h-2 rounded-full ${
+              health?.status === 'healthy' ? 'bg-green-400 animate-pulse' : 'bg-red-400'
+            }`} />
+            <span className="text-sm font-medium">
+              {healthLoading ? 'Connexion...' : health?.status === 'healthy' ? 'API Connectée' : 'API Déconnectée'}
+            </span>
+          </div>
+          
+          {models && (
+            <div className="flex items-center space-x-2 px-4 py-2 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              <TrendingUp className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {Object.keys(models.available_models || {}).length} Modèles Disponibles
+              </span>
+            </div>
+          )}
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4"
+        >
+          <Link to="/predict">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="btn-primary flex items-center space-x-2 text-lg px-8 py-4"
+            >
+              <span>Commencer une Prédiction</span>
+              <ArrowRight className="w-5 h-5" />
+            </motion.button>
+          </Link>
+          
+          <Link to="/compare">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="btn-secondary flex items-center space-x-2 text-lg px-8 py-4"
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span>Comparer les Modèles</span>
+            </motion.button>
+          </Link>
+        </motion.div>
+      </motion.div>
+
+      {/* Features Grid */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -156,7 +232,6 @@ const Home = () => {
           </div>
         </motion.div>
       )}
-      </div>
     </div>
   )
 }

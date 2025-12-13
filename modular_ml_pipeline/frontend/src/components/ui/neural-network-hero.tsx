@@ -158,7 +158,7 @@ const fragmentShader = `
 `;
 
 const CPPNShaderMaterial = shaderMaterial(
-  { iTime: 0, iResolution: new THREE.Vector2(1, 1) },
+  { iTime: 0, iResolution: [1, 1] as [number, number] },
   vertexShader,
   fragmentShader
 );
@@ -173,7 +173,7 @@ function ShaderPlane() {
     if (!materialRef.current) return;
     materialRef.current.iTime = state.clock.elapsedTime;
     const { width, height } = state.size;
-    materialRef.current.iResolution.set(width, height);
+    materialRef.current.iResolution = [width, height];
   });
 
   return (
@@ -341,23 +341,35 @@ export default function NeuralNetworkHero({
 
         <div ref={ctaRef} className="flex flex-wrap items-center gap-3 pt-2">
           {ctaButtons.map((button, index) => {
-            const ButtonComponent = button.href.startsWith('http') ? 'a' : Link;
-            const props = button.href.startsWith('http') 
-              ? { href: button.href, target: '_blank', rel: 'noopener noreferrer' }
-              : { to: button.href };
+            const isExternal = button.href.startsWith('http');
+            const className = `rounded-2xl border border-white/10 px-5 py-3 text-sm font-light tracking-tight transition-colors focus:outline-none focus:ring-2 focus:ring-white/30 duration-300 ${
+              button.primary
+                ? "bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
+                : "text-white/80 hover:bg-white/5"
+            }`;
+            
+            if (isExternal) {
+              return (
+                <a
+                  key={index}
+                  href={button.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={className}
+                >
+                  {button.text}
+                </a>
+              );
+            }
             
             return (
-              <ButtonComponent
+              <Link
                 key={index}
-                {...props}
-                className={`rounded-2xl border border-white/10 px-5 py-3 text-sm font-light tracking-tight transition-colors focus:outline-none focus:ring-2 focus:ring-white/30 duration-300 ${
-                  button.primary
-                    ? "bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
-                    : "text-white/80 hover:bg-white/5"
-                }`}
+                to={button.href}
+                className={className}
               >
                 {button.text}
-              </ButtonComponent>
+              </Link>
             );
           })}
         </div>
@@ -379,9 +391,13 @@ export default function NeuralNetworkHero({
   );
 }
 
-declare module '@react-three/fiber' {
-  interface ThreeElements {
-    cPPNShaderMaterial: any;
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      cPPNShaderMaterial: any;
+      mesh: any;
+      planeGeometry: any;
+    }
   }
 }
 

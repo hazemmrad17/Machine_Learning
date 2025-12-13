@@ -152,7 +152,7 @@ const fragmentShader = `
 `;
 
 const CPPNShaderMaterial = shaderMaterial(
-  { iTime: 0, iResolution: new THREE.Vector2(1, 1) },
+  { iTime: 0, iResolution: [1, 1] as [number, number] },
   vertexShader,
   fragmentShader
 );
@@ -167,7 +167,7 @@ function ShaderPlane() {
     if (!materialRef.current) return;
     materialRef.current.iTime = state.clock.elapsedTime;
     const { width, height } = state.size;
-    materialRef.current.iResolution.set(width, height);
+    materialRef.current.iResolution = [width, height];
   });
 
   return (
@@ -230,9 +230,13 @@ export default function NeuralBackground() {
   );
 }
 
-declare module '@react-three/fiber' {
-  interface ThreeElements {
-    cPPNShaderMaterial: any;
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      cPPNShaderMaterial: any;
+      mesh: any;
+      planeGeometry: any;
+    }
   }
 }
 
