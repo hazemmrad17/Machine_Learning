@@ -211,10 +211,9 @@ def predict_with_model(model: Any, model_type: str, features_scaled: np.ndarray)
         y_continuous = model.predict(features_scaled)[0]
         prediction = int(y_continuous >= 0.5)
         
-        # Normaliser pour probabilité
-        from sklearn.preprocessing import MinMaxScaler
-        scaler = MinMaxScaler()
-        probability = scaler.fit_transform([[y_continuous]])[0][0]
+        # Probabilité avec sigmoid pour une meilleure calibration
+        import math
+        probability = 1 / (1 + math.exp(-y_continuous))
         
         return prediction, probability
     

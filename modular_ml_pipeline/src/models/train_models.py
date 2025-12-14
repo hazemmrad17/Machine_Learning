@@ -183,6 +183,7 @@ def train_knn(
     
     model = KNeighborsClassifier(
         n_neighbors=kwargs.get('n_neighbors', 1),
+        weights='distance',  # Pondération par distance pour des probabilités plus lisses
         metric='minkowski',
         p=p
     )

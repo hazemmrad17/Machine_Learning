@@ -57,7 +57,7 @@ def main():
     logger.info("ÉTAPE 2: ENTRAÎNEMENT DES MODÈLES")
     logger.info("=" * 80)
     
-    # Hyperparamètres exacts du notebook original
+    # Hyperparamètres ajustés pour réduire l'overfitting et améliorer la calibration des probabilités
     models_to_train = {
         'Linear': ('linear', {
             'eta0': 1e-3,
@@ -70,35 +70,35 @@ def main():
             'random_state': 42
         }),
         'MLP': ('mlp', {
-            'hidden_layer_sizes': (500, 500, 500),
-            'learning_rate_init': 1e-2,
+            'hidden_layer_sizes': (100, 50),  # Réduit pour éviter l'overfitting
+            'learning_rate_init': 1e-3,  # Réduit
             'alpha': 0.01,
-            'max_iter': 3000,
+            'max_iter': 2000,  # Réduit
             'early_stopping': True,
             'validation_fraction': 0.1,
             'random_state': 42
         }),
         'SVM': ('svm', {
-            'C': 5,
+            'C': 1,  # Réduit pour plus de régularisation
             'kernel': 'rbf',
             'probability': True,
             'random_state': 42,
             'max_iter': 3000
         }),
         'KNN-L1': ('knn', {
-            'n_neighbors': 1,
-            'distance': 'l1'  # L1 (Manhattan) distance
+            'n_neighbors': 20,  # Augmenté pour plus de stabilité
+            'distance': 'l1'
         }),
         'KNN-L2': ('knn', {
-            'n_neighbors': 1,
-            'distance': 'l2'  # L2 (Euclidean) distance
+            'n_neighbors': 20,  # Augmenté
+            'distance': 'l2'
         }),
         'GRU-SVM': ('gru_svm', {
-            'epochs': 500,
-            'batch_size': 128,
-            'patience': 30,
+            'epochs': 200,  # Réduit
+            'batch_size': 32,  # Réduit
+            'patience': 20,
             'learning_rate': 1e-3,
-            'svm_C': 5,
+            'svm_C': 1,  # Réduit
             'random_state': 42
         })
     }
