@@ -1,8 +1,8 @@
-# 🏥 Breast Cancer Detection - Machine Learning Project
+# Breast Cancer Detection - Machine Learning Project
 
 A comprehensive machine learning project for breast cancer detection using the Wisconsin Diagnostic Dataset, featuring both research notebooks and a production-ready MLOps deployment with modern React frontend.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Breast Cancer Detection/
@@ -29,7 +29,7 @@ Breast Cancer Detection/
 
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -82,7 +82,7 @@ The frontend will be available at `http://localhost:3000` (or the port shown in 
 - **API Documentation**: Open `http://localhost:8000/docs` for Swagger UI
 - **API Health Check**: `http://localhost:8000/health`
 
-## 📊 Features
+## Features
 
 ### Machine Learning Models
 
@@ -95,12 +95,12 @@ The frontend will be available at `http://localhost:3000` (or the port shown in 
 
 ### Frontend Features
 
-- 🎨 **Modern UI** - Beautiful neural network shader background with GSAP animations
-- 📊 **Real-time Predictions** - Interactive prediction interface
-- 🔄 **Model Comparison** - Compare multiple models side-by-side
-- ⚙️ **Hyperparameter Tuning** - Adjust model parameters and retrain
-- 📈 **Visualizations** - Model performance metrics and charts
-- 🎯 **Model Visualization** - See models in action with real-time predictions
+- **Modern UI** - Beautiful neural network shader background with GSAP animations
+- **Real-time Predictions** - Interactive prediction interface
+- **Model Comparison** - Compare multiple models side-by-side
+- **Hyperparameter Tuning** - Adjust model parameters and retrain
+- **Visualizations** - Model performance metrics and charts
+- **Model Visualization** - See models in action with real-time predictions
 
 ### API Endpoints
 
@@ -110,7 +110,7 @@ The frontend will be available at `http://localhost:3000` (or the port shown in 
 - `POST /retrain` - Retrain models with custom hyperparameters
 - `GET /models/{model_name}/info` - Get model information
 
-## 🎯 Model Performance
+## Model Performance
 
 Based on the Wisconsin Diagnostic Dataset:
 
@@ -120,7 +120,7 @@ Based on the Wisconsin Diagnostic Dataset:
 - **Precision**: ~96%
 - **Recall**: ~98%
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend
 - **FastAPI** - Modern Python web framework
@@ -139,13 +139,13 @@ Based on the Wisconsin Diagnostic Dataset:
 - **Framer Motion** - UI animations
 - **Recharts** - Data visualization
 
-## 📚 Documentation
+## Documentation
 
 - `modular_ml_pipeline/README.md` - MLOps deployment guide
 - `modular_ml_pipeline/FRONTEND_README.md` - Frontend development guide
 - `modular_ml_pipeline/api/README.md` - API documentation
 
-## 🔬 Research Paper
+## Research Paper
 
 This project replicates and extends the methodology from:
 **"On Breast Cancer Detection: An Application of Machine Learning Algorithms on the Wisconsin Diagnostic Dataset"**
@@ -157,7 +157,7 @@ The notebooks include:
 - Hyperparameter optimization
 - Results visualization
 
-## 🧪 Usage Examples
+## Usage Examples
 
 ### Making a Prediction via API
 
@@ -191,7 +191,7 @@ response = requests.post("http://localhost:8000/retrain", json=retrain_data)
 print(response.json())
 ```
 
-## 🚧 Development
+## Development
 
 ### Running Tests
 
@@ -215,23 +215,23 @@ npm run build
 # The built files will be in the `dist/` directory
 ```
 
-## 📝 License
+## License
 
 Educational use only. This project is for learning and research purposes.
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This system is for **educational and research purposes only**. It should **not** be used as a substitute for professional medical diagnosis. Always consult qualified healthcare professionals for medical decisions.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📧 Contact
+## Contact
 
 For questions or issues, please open an issue on GitHub.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Wisconsin Diagnostic Breast Cancer Dataset
 - Scikit-learn team for excellent ML tools
@@ -239,5 +239,5 @@ For questions or issues, please open an issue on GitHub.
 
 ---
 
-**Made with ❤️ for Machine Learning Education**
+**Made with love for Machine Learning Education**
 
