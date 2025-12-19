@@ -15,7 +15,7 @@ from sklearn.neighbors import KNeighborsClassifier
 # Tentative d'import TensorFlow (optionnel)
 try:
     from tensorflow.keras.models import Sequential, Model
-    from tensorflow.keras.layers import GRU, Dense, Dropout, Input
+    from tensorflow.keras.layers import GRU, Dense, Dropout, Input, BatchNormalization
     from tensorflow.keras.callbacks import EarlyStopping
     from tensorflow.keras.optimizers import Adam
     TENSORFLOW_AVAILABLE = True
@@ -220,39 +220,57 @@ def train_gru_svm(
     
     logger.info("Entraînement du modèle: GRU-SVM")
     
+    # Convertir en arrays numpy si nécessaire (gérer les DataFrames pandas)
+    if hasattr(X_train, 'values'):
+        X_train = X_train.values
+    if hasattr(X_test, 'values'):
+        X_test = X_test.values
+    if hasattr(y_train, 'values'):
+        y_train = y_train.values
+    
+    # Convertir en arrays numpy si ce sont des listes ou autres types
+    X_train = np.array(X_train)
+    X_test = np.array(X_test)
+    y_train = np.array(y_train)
+    
     # Reshape pour GRU (30 features × 1)
     n_features = X_train.shape[1]
     X_train_gru = X_train.reshape(X_train.shape[0], n_features, 1)
     X_test_gru = X_test.reshape(X_test.shape[0], n_features, 1)
     
-    # 1. Création et entraînement du GRU
+    # 1. Création et entraînement du GRU (architecture optimisée anti-overfitting)
     logger.info("  → Entraînement du GRU...")
+    from tensorflow.keras.regularizers import l2
+    
     gru_model = Sequential([
         Input(shape=(n_features, 1)),
-        GRU(128, return_sequences=False),
+        GRU(48, return_sequences=False, kernel_regularizer=l2(0.01), recurrent_regularizer=l2(0.01)),
         Dropout(0.5),
-        Dense(32, activation='relu'),
-        Dropout(0.5),
+        BatchNormalization(),
+        Dense(24, activation='relu', kernel_regularizer=l2(0.01)),
+        Dropout(0.4),
+        BatchNormalization(),
         Dense(1, activation='sigmoid')
     ])
     
     gru_model.compile(
-        optimizer=Adam(learning_rate=kwargs.get('learning_rate', 1e-3)),
+        optimizer=Adam(learning_rate=kwargs.get('learning_rate', 5e-4)),
         loss='binary_crossentropy',
         metrics=['accuracy']
     )
     
     early_stopping = EarlyStopping(
         monitor='val_loss',
-        patience=kwargs.get('patience', 30),
+        patience=kwargs.get('patience', 20),
         restore_best_weights=True,
-        verbose=1
+        min_delta=1e-4,
+        verbose=kwargs.get('verbose', 1)
     )
     
     gru_model.fit(
         X_train_gru, y_train,
-        epochs=kwargs.get('epochs', 500),
-        batch_size=kwargs.get('batch_size', 128),
+        epochs=kwargs.get('epochs', 300),
+        batch_size=kwargs.get('batch_size', 64),
         validation_split=kwargs.get('validation_split', 0.2),
         verbose=kwargs.get('verbose', 1),
         callbacks=[early_stopping]
@@ -263,7 +281,7 @@ def train_gru_svm(
     model_input = gru_model.layers[0].input
     feature_extractor = Model(
         inputs=model_input,
-        outputs=gru_model.layers[-3].output  # Dense(32)
+        outputs=gru_model.layers[-4].output  # Dense(24) - index ajusté pour la nouvelle architecture
     )
     
     gru_train_features = feature_extractor.predict(X_train_gru, verbose=0)
@@ -274,6 +292,7 @@ def train_gru_svm(
     svm_model = SVC(
         kernel='rbf',
         C=kwargs.get('svm_C', 5),
+        gamma='scale',  # Régularisation pour éviter l'overfitting
         probability=True,
         random_state=kwargs.get('random_state', 42)
     )

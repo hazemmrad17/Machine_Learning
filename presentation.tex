@@ -1,0 +1,648 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{adjustbox}
+\usetikzlibrary{shapes,arrows,positioning,calc,decorations.pathreplacing}
+
+% Thème et couleurs
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Couleurs personnalisées
+\definecolor{paperred}{RGB}{231, 76, 60}
+\definecolor{ourgreen}{RGB}{39, 174, 96}
+\definecolor{bestgreen}{RGB}{30, 132, 73}
+\definecolor{bluecolor}{RGB}{52, 152, 219}
+\definecolor{inputcolor}{RGB}{52, 152, 219}
+\definecolor{hiddencolor}{RGB}{39, 174, 96}
+\definecolor{outputcolor}{RGB}{231, 76, 60}
+\definecolor{grucolor}{RGB}{155, 89, 182}
+\definecolor{svmcolor}{RGB}{241, 196, 15}
+
+% Informations de la présentation
+\title[Comparaison Approches]{Comparaison des Approches\\Notre Implémentation vs Paper}
+\subtitle{Détection du Cancer du Sein - Modèles d'Apprentissage Automatique}
+\author{Votre Nom}
+\date{2024}
+\institute{Université}
+
+% Supprimer la navigation
+\setbeamertemplate{navigation symbols}{}
+
+\begin{document}
+
+% ============================================================================
+% SLIDE 1: Page de Titre
+% ============================================================================
+\frame{\titlepage}
+
+% ============================================================================
+% SLIDE 2: Vue d'Ensemble
+% ============================================================================
+\begin{frame}{Vue d'Ensemble}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{itemize}
+            \item \textbf{Dataset:} Wisconsin Breast Cancer
+            \begin{itemize}
+                \item 569 échantillons
+                \item 30 features
+                \item Classification binaire
+            \end{itemize}
+            \item \textbf{7 Modèles Comparés:}
+            \begin{itemize}
+                \item Linear Regression
+                \item Softmax Regression
+                \item MLP
+                \item L2-SVM
+                \item KNN (L1 et L2)
+                \item GRU-SVM
+            \end{itemize}
+        \end{itemize}
+        
+        \column{0.5\textwidth}
+        \begin{block}{Objectif}
+            Comparer l'approche du paper (hyperparamètres fixes) avec notre approche (optimisation systématique)
+        \end{block}
+        
+        \vspace{0.5cm}
+        \begin{alertblock}{Meilleur Modèle}
+            Softmax Regression: \textbf{98.25\%} accuracy
+        \end{alertblock}
+    \end{columns}
+    
+    \vspace{0.5cm}
+    \centering
+    \includegraphics[width=0.9\textwidth]{presentation_charts/slide2_performance_comparison.png}
+\end{frame}
+
+% ============================================================================
+% SLIDE 3: Méthodologie
+% ============================================================================
+\begin{frame}{Méthodologie Comparée}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Approche du Paper}
+            \begin{itemize}
+                \item Hyperparamètres fixes
+                \item Pas d'optimisation systématique
+                \item Focus sur performance brute
+                \item Validation simple
+            \end{itemize}
+        \end{block}
+        
+        \column{0.5\textwidth}
+        \begin{block}{Notre Approche}
+            \begin{itemize}
+                \item Grid search pour tous les modèles
+                \item SMOTE pour équilibrage
+                \item Régularisation multi-couches
+                \item Focus sur généralisation
+            \end{itemize}
+        \end{block}
+    \end{columns}
+    
+    \vspace{0.5cm}
+    \centering
+    \begin{tikzpicture}[node distance=1.5cm, auto]
+        % Paper flow
+        \node[draw, rectangle, fill=paperred!20] (p1) {Data};
+        \node[draw, rectangle, fill=paperred!20, right of=p1] (p2) {Train/Test};
+        \node[draw, rectangle, fill=paperred!20, right of=p2] (p3) {Model};
+        \node[draw, rectangle, fill=paperred!20, right of=p3] (p4) {Eval};
+        
+        \draw[->] (p1) -- (p2);
+        \draw[->] (p2) -- (p3);
+        \draw[->] (p3) -- (p4);
+        
+        % Our flow
+        \node[draw, rectangle, fill=ourgreen!20, below of=p1, yshift=-1cm] (o1) {Data};
+        \node[draw, rectangle, fill=ourgreen!20, right of=o1] (o2) {SMOTE};
+        \node[draw, rectangle, fill=ourgreen!20, right of=o2] (o3) {Grid Search};
+        \node[draw, rectangle, fill=ourgreen!20, right of=o3] (o4) {Best Model};
+        \node[draw, rectangle, fill=ourgreen!20, right of=o4] (o5) {Eval};
+        
+        \draw[->] (o1) -- (o2);
+        \draw[->] (o2) -- (o3);
+        \draw[->] (o3) -- (o4);
+        \draw[->] (o4) -- (o5);
+    \end{tikzpicture}
+\end{frame}
+
+% ============================================================================
+% SLIDE 4: Linear Regression
+% ============================================================================
+\begin{frame}{Linear Regression (SGDRegressor)}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Approche du Paper}
+            \begin{itemize}
+                \item $\eta_0 = 10^{-3}$ (fixe)
+                \item max\_iter = 3000 (fixe)
+                \item Pas d'optimisation
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{Notre Approche}
+            \begin{itemize}
+                \item Grid Search:
+                \begin{itemize}
+                    \item $\eta_0$: $[10^{-4}, 10^{-3}, 10^{-2}]$
+                    \item max\_iter: $[500, 1000, 2000]$
+                \end{itemize}
+                \item Optimisation basée sur validation AUC
+            \end{itemize}
+        \end{block}
+        
+        \begin{alertblock}{Résultat}
+            94.74\% accuracy, 0.988 ROC-AUC
+        \end{alertblock}
+        
+        \column{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{presentation_charts/slide4_linear_grid_search.png}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 5: Softmax Regression
+% ============================================================================
+\begin{frame}{Softmax Regression (LogisticRegression)}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Approche du Paper}
+            \textcolor{paperred}{\Large \textbf{❌ Modèle absent}}
+        \end{block}
+        
+        \begin{block}{Notre Approche}
+            \begin{itemize}
+                \item \textcolor{ourgreen}{\Large \textbf{✅ Modèle ajouté}}
+                \item Grid Search:
+                \begin{itemize}
+                    \item C: $[0.1, 1, 10]$
+                    \item solver: $[$lbfgs, liblinear, sag$]$
+                    \item max\_iter: $[1000, 3000, 5000]$
+                \end{itemize}
+            \end{itemize}
+        \end{block}
+        
+        \begin{alertblock}{Résultat: MEILLEUR MODÈLE}
+            \begin{itemize}
+                \item \textbf{98.25\%} accuracy
+                \item \textbf{0.998} ROC-AUC
+                \item \textbf{0.976} F1-Score
+            \end{itemize}
+        \end{alertblock}
+        
+        \column{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{presentation_charts/slide5_softmax_radar.png}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 6: MLP - Architecture Diagram
+% ============================================================================
+\begin{frame}{MLP (Multi-Layer Perceptron) - Architecture}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Approche du Paper}
+            \begin{itemize}
+                \item Architecture: $(500, 500, 500)$ fixe
+                \item Learning Rate: $10^{-2}$ fixe
+                \item Alpha (L2): 0.01 fixe
+                \item \textcolor{paperred}{Risque d'overfitting élevé}
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{Notre Approche}
+            \begin{itemize}
+                \item Architecture: Optimisée parmi 3 options
+                \item Learning Rate: Adaptatif + optimisé
+                \item Alpha: Optimisé $[0.01, 0.05, 0.1]$
+            \end{itemize}
+        \end{block}
+        
+        \begin{alertblock}{Résultat}
+            95.32\% accuracy, meilleure généralisation
+        \end{alertblock}
+        
+        \column{0.5\textwidth}
+        % MLP Architecture Diagram
+        \begin{tikzpicture}[scale=0.45, transform shape,
+            node distance=1cm,
+            neuron/.style={circle, draw, minimum size=0.5cm, font=\tiny},
+            arrow/.style={->, >=stealth, thin, gray!50}]
+            
+            % Input Layer (showing 6 out of 30)
+            \node[neuron, fill=inputcolor!30] (i1) at (0,2.5) {};
+            \node[neuron, fill=inputcolor!30] (i2) at (0,1.5) {};
+            \node[neuron, fill=inputcolor!30] (i3) at (0,0.5) {};
+            \node[neuron, fill=inputcolor!30] (i4) at (0,-0.5) {};
+            \node[neuron, fill=inputcolor!30] (i5) at (0,-1.5) {};
+            \node[neuron, fill=inputcolor!30] (i6) at (0,-2.5) {};
+            \node[left of=i3, xshift=-0.3cm, font=\tiny] {Input \\ 30};
+            
+            % Hidden Layer 1 (showing 5 out of 500)
+            \node[neuron, fill=hiddencolor!30] (h1_1) at (2,2) {};
+            \node[neuron, fill=hiddencolor!30] (h1_2) at (2,1) {};
+            \node[neuron, fill=hiddencolor!30] (h1_3) at (2,0) {};
+            \node[neuron, fill=hiddencolor!30] (h1_4) at (2,-1) {};
+            \node[neuron, fill=hiddencolor!30] (h1_5) at (2,-2) {};
+            \node[above of=h1_1, yshift=-0.2cm, font=\tiny] {Hidden 1 \\ 500};
+            
+            % Hidden Layer 2
+            \node[neuron, fill=hiddencolor!30] (h2_1) at (4,2) {};
+            \node[neuron, fill=hiddencolor!30] (h2_2) at (4,1) {};
+            \node[neuron, fill=hiddencolor!30] (h2_3) at (4,0) {};
+            \node[neuron, fill=hiddencolor!30] (h2_4) at (4,-1) {};
+            \node[neuron, fill=hiddencolor!30] (h2_5) at (4,-2) {};
+            \node[above of=h2_1, yshift=-0.2cm, font=\tiny] {Hidden 2 \\ 500};
+            
+            % Hidden Layer 3
+            \node[neuron, fill=hiddencolor!30] (h3_1) at (6,2) {};
+            \node[neuron, fill=hiddencolor!30] (h3_2) at (6,1) {};
+            \node[neuron, fill=hiddencolor!30] (h3_3) at (6,0) {};
+            \node[neuron, fill=hiddencolor!30] (h3_4) at (6,-1) {};
+            \node[neuron, fill=hiddencolor!30] (h3_5) at (6,-2) {};
+            \node[above of=h3_1, yshift=-0.2cm, font=\tiny] {Hidden 3 \\ 500};
+            
+            % Output
+            \node[neuron, fill=outputcolor!30] (o1) at (8,0) {};
+            \node[right of=o1, xshift=0.2cm, font=\tiny] {Output \\ 1};
+            
+            % Connections
+            \foreach \i in {1,2,3,4,5,6} {
+                \foreach \j in {1,2,3,4,5} {
+                    \draw[arrow] (i\i) -- (h1_\j);
+                    \draw[arrow] (h1_\j) -- (h2_\j);
+                    \draw[arrow] (h2_\j) -- (h3_\j);
+                    \draw[arrow] (h3_\j) -- (o1);
+                }
+            }
+        \end{tikzpicture}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 7: L2-SVM
+% ============================================================================
+\begin{frame}{L2-SVM - Choix du Kernel}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Approche du Paper}
+            \begin{itemize}
+                \item Kernel: \textbf{RBF} (non linéaire)
+                \item C = 5 (fixe)
+                \item Complexité élevée
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{Notre Approche}
+            \begin{itemize}
+                \item Kernel: \textcolor{ourgreen}{\textbf{LINEAR}} (linéaire)
+                \item C: Optimisé via grid search
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{Justification}
+            \begin{itemize}
+                \item Dataset linéairement séparable
+                \item Moins de complexité $\rightarrow$ moins d'overfitting
+                \item Meilleure interprétabilité
+            \end{itemize}
+        \end{block}
+        
+        \begin{alertblock}{Résultat}
+            95.91\% accuracy
+        \end{alertblock}
+        
+        \column{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{presentation_charts/slide7_svm_kernel.png}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 8: KNN
+% ============================================================================
+\begin{frame}{K-Nearest Neighbors (L1 et L2)}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Approche du Paper}
+            \begin{itemize}
+                \item $k = 1$ (fixe, très sensible)
+                \item Pas d'optimisation
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{Notre Approche}
+            \begin{itemize}
+                \item $k$ optimisé via grid search
+                \item $k \in [1, 3, 5, 7, 9, 11, 15, 20]$
+                \item Séparation L1 (Manhattan) et L2 (Euclidean)
+            \end{itemize}
+        \end{block}
+        
+        \begin{alertblock}{Résultats}
+            \begin{itemize}
+                \item L1-NN: \textbf{96.49\%} accuracy ($k$ optimal)
+                \item L2-NN: \textbf{97.08\%} accuracy ($k$ optimal)
+            \end{itemize}
+        \end{alertblock}
+        
+        \column{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{presentation_charts/slide8_knn_optimization.png}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 9: GRU-SVM - Architecture Diagram
+% ============================================================================
+\begin{frame}{GRU-SVM - Architecture Comparée}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Paper Architecture}
+            \small
+            Input(30) $\rightarrow$ GRU(128) $\rightarrow$ Dropout(0.3) $\rightarrow$ \\
+            Dense(32) $\rightarrow$ Dropout(0.5) $\rightarrow$ Output(1)
+        \end{block}
+        
+        \begin{block}{Notre Architecture (Anti-Overfitting)}
+            \small
+            Input(30) $\rightarrow$ GRU(48)+L2 $\rightarrow$ Dropout(0.5) $\rightarrow$ \\
+            BatchNorm $\rightarrow$ Dense(24)+L2 $\rightarrow$ Dropout(0.4) $\rightarrow$ \\
+            BatchNorm $\rightarrow$ Output(1)
+        \end{block}
+        
+        \begin{alertblock}{Réductions}
+            \begin{itemize}
+                \item GRU: 128 $\rightarrow$ 48 (\textbf{-62.5\%})
+                \item Dense: 32 $\rightarrow$ 24 (\textbf{-25\%})
+                \item Paramètres totaux: \textbf{-79.5\%}
+            \end{itemize}
+        \end{alertblock}
+        
+        \column{0.5\textwidth}
+        % GRU-SVM Architecture Diagram
+        \begin{tikzpicture}[scale=0.35, transform shape,
+            node distance=0.8cm,
+            neuron/.style={circle, draw, minimum size=0.4cm, font=\tiny},
+            gru/.style={rectangle, draw, fill=grucolor!20, minimum width=1.2cm, minimum height=2cm},
+            dense/.style={rectangle, draw, fill=hiddencolor!20, minimum width=1cm, minimum height=1.5cm},
+            svm/.style={rectangle, draw, fill=svmcolor!20, minimum width=1cm, minimum height=1cm, rounded corners},
+            arrow/.style={->, >=stealth, thin}]
+            
+            % Input
+            \node[neuron, fill=inputcolor!30] (x1) at (0,1) {};
+            \node[neuron, fill=inputcolor!30] (x2) at (0,0) {};
+            \node[neuron, fill=inputcolor!30] (x3) at (0,-1) {};
+            \node[left of=x2, xshift=-0.2cm, font=\tiny] {Input \\ 30};
+            
+            % GRU Block
+            \node[gru] (gru) at (2.5,0) {
+                \begin{tabular}{c}
+                    \tiny GRU \\
+                    \tiny 48 \\
+                    \tiny L2(0.01)
+                \end{tabular}
+            };
+            \draw[arrow] (x2) -- (gru);
+            
+            % Dropout 1
+            \node[rectangle, draw, fill=gray!20, minimum width=0.8cm, minimum height=0.4cm, font=\tiny] (drop1) at (4.5,0) {D 0.5};
+            \draw[arrow] (gru) -- (drop1);
+            
+            % BatchNorm 1
+            \node[rectangle, draw, fill=gray!20, minimum width=0.8cm, minimum height=0.4cm, font=\tiny] (bn1) at (6,0) {BN};
+            \draw[arrow] (drop1) -- (bn1);
+            
+            % Dense
+            \node[dense] (dense) at (7.5,0) {
+                \begin{tabular}{c}
+                    \tiny Dense \\
+                    \tiny 24 \\
+                    \tiny L2(0.01)
+                \end{tabular}
+            };
+            \draw[arrow] (bn1) -- (dense);
+            
+            % Dropout 2
+            \node[rectangle, draw, fill=gray!20, minimum width=0.8cm, minimum height=0.4cm, font=\tiny] (drop2) at (9,0) {D 0.4};
+            \draw[arrow] (dense) -- (drop2);
+            
+            % BatchNorm 2
+            \node[rectangle, draw, fill=gray!20, minimum width=0.8cm, minimum height=0.4cm, font=\tiny] (bn2) at (10.5,0) {BN};
+            \draw[arrow] (drop2) -- (bn2);
+            
+            % SVM (for hybrid model)
+            \node[svm] (svm) at (12,0) {
+                \begin{tabular}{c}
+                    \tiny SVM \\
+                    \tiny RBF
+                \end{tabular}
+            };
+            \draw[arrow, svmcolor, thick] (bn2) -- (svm);
+            
+            % Output
+            \node[neuron, fill=outputcolor!30] (out) at (13.5,0) {};
+            \draw[arrow] (svm) -- (out);
+            \node[right of=out, xshift=0.2cm, font=\tiny] {Output};
+            
+        \end{tikzpicture}
+        
+        \vspace{0.2cm}
+        \centering
+        \tiny \textcolor{grucolor}{GRU} $\rightarrow$ \textcolor{hiddencolor}{Dense} $\rightarrow$ \textcolor{svmcolor}{SVM}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 10: GRU-SVM - Hyperparamètres
+% ============================================================================
+\begin{frame}{GRU-SVM - Hyperparamètres Optimisés}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Comparaison}
+            \begin{itemize}
+                \item Learning Rate: $10^{-3} \rightarrow 5 \times 10^{-4}$ (\textbf{-50\%})
+                \item Batch Size: 128 $\rightarrow$ 64 (\textbf{-50\%})
+                \item Epochs: 500 $\rightarrow$ 300 (\textbf{-40\%})
+                \item Early Stopping: 30 $\rightarrow$ 20 + min\_delta
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{Nouveaux Éléments}
+            \begin{itemize}
+                \item L2 Regularization: 0.01 (GRU + Dense)
+                \item BatchNormalization: 2 couches
+                \item SVM gamma: 'scale'
+            \end{itemize}
+        \end{block}
+        
+        \column{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{presentation_charts/slide10_gru_training.png}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 11: Résultats Globaux
+% ============================================================================
+\begin{frame}{Résultats sur le Test Set}
+    \begin{block}{Meilleur Modèle: Softmax Regression}
+        \begin{itemize}
+            \item \textbf{98.25\%} Accuracy
+            \item \textbf{0.998} ROC-AUC
+            \item \textbf{0.976} F1-Score
+        \end{itemize}
+    \end{block}
+    
+    \begin{alertblock}{Tous les modèles > 90\% accuracy}
+        Grâce à l'optimisation systématique
+    \end{alertblock}
+    
+    \vspace{0.3cm}
+    \centering
+    \includegraphics[width=0.9\textwidth]{presentation_charts/slide11_global_results.png}
+\end{frame}
+
+% ============================================================================
+% SLIDE 12: Analyse de l'Overfitting
+% ============================================================================
+\begin{frame}{Analyse de l'Overfitting}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{Indicateurs}
+            \begin{itemize}
+                \item Écart train/validation
+                \item Learning curves
+                \item Gap de performance
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{Notre approche montre}
+            \begin{itemize}
+                \item Gaps réduits pour tous les modèles
+                \item Meilleure généralisation
+                \item Moins de risque d'overfitting
+            \end{itemize}
+        \end{block}
+        
+        \column{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{presentation_charts/slide12_overfitting_analysis.png}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 13: Impact des Optimisations
+% ============================================================================
+\begin{frame}{Impact des Optimisations}
+    \begin{block}{Améliorations Cumulatives}
+        \begin{itemize}
+            \item Base (Paper): 92\%
+            \item + Linear opt: +0.7\%
+            \item + Softmax: +4.3\%
+            \item + MLP opt: +1.3\%
+            \item + SVM opt: +1.9\%
+            \item + KNN opt: +2.5\%
+            \item + GRU opt: +0.2\%
+            \item Final (Softmax): \textbf{98.3\%}
+        \end{itemize}
+    \end{block}
+    
+    \vspace{0.3cm}
+    \centering
+    \includegraphics[width=0.8\textwidth]{presentation_charts/slide13_optimization_impact.png}
+\end{frame}
+
+% ============================================================================
+% SLIDE 14: Justifications Techniques
+% ============================================================================
+\begin{frame}{Justifications Techniques}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{1. Ratio Paramètres/Données}
+            \begin{itemize}
+                \item Paper: Risque élevé (ratio > 35:1)
+                \item Notre: Ratio optimisé ($\sim$7:1)
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{2. Régularisation Multi-Couches}
+            \begin{itemize}
+                \item L2 + Dropout + BatchNorm
+                \item Synergie des techniques
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{3. Stabilité de l'Entraînement}
+            \begin{itemize}
+                \item Learning rates optimisés
+                \item BatchNormalization
+            \end{itemize}
+        \end{block}
+        
+        \column{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{presentation_charts/slide14_parameter_ratio.png}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+% SLIDE 15: Conclusion
+% ============================================================================
+\begin{frame}{Conclusion}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{block}{✅ Optimisation Systématique}
+            \begin{itemize}
+                \item Tous les modèles optimisés
+                \item Grid search exhaustif
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{✅ Réduction de l'Overfitting}
+            \begin{itemize}
+                \item Architectures adaptées
+                \item Régularisation appropriée
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{✅ Meilleure Performance}
+            \begin{itemize}
+                \item Softmax: \textbf{98.25\%} accuracy
+                \item Tous > 90\% accuracy
+            \end{itemize}
+        \end{block}
+        
+        \begin{block}{✅ Généralisation Améliorée}
+            \begin{itemize}
+                \item Gaps train/val réduits
+                \item Performance test supérieure
+            \end{itemize}
+        \end{block}
+        
+        \column{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{presentation_charts/slide11_global_results.png}
+    \end{columns}
+    
+    \vspace{0.5cm}
+    \centering
+    \Large \textbf{Merci pour votre attention!}
+\end{frame}
+
+\end{document}
+

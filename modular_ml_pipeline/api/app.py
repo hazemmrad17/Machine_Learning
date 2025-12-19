@@ -176,14 +176,23 @@ def load_models_from_disk():
             models_cache['knn'] = load_model(str(knn_path), model_type='standard')
             logger.info("✓ Modèle KNN (ancien format) chargé")
         
-        # Charger GRU-SVM
-        gru_svm_path = MODELS_DIR / "gru_svm_model.pkl"
-        if gru_svm_path.exists():
+        # Charger GRU-SVM (vérifier les fichiers séparés)
+        gru_svm_metadata_path = MODELS_DIR / "gru_svm_model_metadata.pkl"
+        gru_svm_gru_path = MODELS_DIR / "gru_svm_model_gru.h5"
+        gru_svm_svm_path = MODELS_DIR / "gru_svm_model_svm.pkl"
+        
+        # Le modèle GRU-SVM est sauvegardé en fichiers séparés
+        # load_model() peut charger depuis metadata ou construire les chemins depuis le base path
+        if gru_svm_metadata_path.exists() or (gru_svm_gru_path.exists() and gru_svm_svm_path.exists()):
             try:
-                models_cache['gru_svm'] = load_model(str(gru_svm_path), model_type='gru_svm')
+                # Passer le chemin de base (sans extension) - load_model construira les chemins
+                base_path = str(MODELS_DIR / "gru_svm_model.pkl")
+                models_cache['gru_svm'] = load_model(base_path, model_type='gru_svm')
                 logger.info("✓ Modèle GRU-SVM chargé")
             except Exception as e:
                 logger.warning(f"⚠ Erreur lors du chargement de GRU-SVM: {e}")
+                import traceback
+                logger.warning(f"   Traceback: {traceback.format_exc()}")
         
     except Exception as e:
         logger.error(f"❌ Erreur lors du chargement des modèles: {e}")
@@ -496,11 +505,17 @@ async def retrain(request: RetrainRequest):
             
             try:
                 if model_name == 'gru_svm':
+                    # Convertir les DataFrames en arrays numpy pour GRU-SVM
+                    import numpy as np
+                    X_train_array = np.array(data['X_train_scaled']) if hasattr(data['X_train_scaled'], 'values') else data['X_train_scaled']
+                    X_test_array = np.array(data['X_test_scaled']) if hasattr(data['X_test_scaled'], 'values') else data['X_test_scaled']
+                    y_train_array = np.array(data['y_train']) if hasattr(data['y_train'], 'values') else data['y_train']
+                    
                     model = train_model(
                         model_type=model_name,
-                        X_train=data['X_train_scaled'],
-                        y_train=data['y_train'],
-                        X_test=data['X_test_scaled'],
+                        X_train=X_train_array,
+                        y_train=y_train_array,
+                        X_test=X_test_array,
                         **hyperparams
                     )
                 elif model_name in ['knn_l1', 'knn_l2']:

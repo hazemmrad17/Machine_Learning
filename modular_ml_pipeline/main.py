@@ -94,11 +94,11 @@ def main():
             'distance': 'l2'
         }),
         'GRU-SVM': ('gru_svm', {
-            'epochs': 200,  # Réduit
-            'batch_size': 32,  # Réduit
-            'patience': 20,
-            'learning_rate': 1e-3,
-            'svm_C': 1,  # Réduit
+            'epochs': 300,  # Optimisé
+            'batch_size': 64,  # Optimisé
+            'patience': 20,  # Avec min_delta=1e-4
+            'learning_rate': 5e-4,  # Optimisé (réduit pour stabilité)
+            'svm_C': 1.0,  # Optimisé via grid search
             'random_state': 42
         })
     }
@@ -110,11 +110,17 @@ def main():
             logger.info(f"\n--- Entraînement: {model_name} ---")
             
             if model_type == 'gru_svm':
+                # Convertir les DataFrames en arrays numpy pour GRU-SVM
+                import numpy as np
+                X_train_array = np.array(data['X_train_scaled']) if hasattr(data['X_train_scaled'], 'values') else data['X_train_scaled']
+                X_test_array = np.array(data['X_test_scaled']) if hasattr(data['X_test_scaled'], 'values') else data['X_test_scaled']
+                y_train_array = np.array(data['y_train']) if hasattr(data['y_train'], 'values') else data['y_train']
+                
                 model = train_model(
                     model_type=model_type,
-                    X_train=data['X_train_scaled'],
-                    y_train=data['y_train'],
-                    X_test=data['X_test_scaled'],
+                    X_train=X_train_array,
+                    y_train=y_train_array,
+                    X_test=X_test_array,
                     **kwargs
                 )
             else:

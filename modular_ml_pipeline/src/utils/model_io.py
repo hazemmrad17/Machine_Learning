@@ -103,11 +103,12 @@ def load_model(
         Modèle chargé
     """
     filepath = Path(filepath)
-    
-    if not filepath.exists():
-        raise FileNotFoundError(f"Fichier {filepath} non trouvé")
-    
     model_type = model_type.lower()
+    
+    # Pour gru_svm, le fichier de base n'existe pas, mais les fichiers composants existent
+    # On vérifie l'existence seulement pour les autres types
+    if model_type != 'gru_svm' and not filepath.exists():
+        raise FileNotFoundError(f"Fichier {filepath} non trouvé")
     
     if model_type == 'gru':
         # Modèle TensorFlow/Keras
@@ -123,42 +124,96 @@ def load_model(
         # Modèle hybride: charger GRU et SVM séparément
         logger.info(f"Chargement du modèle GRU-SVM...")
         
+        # Construire les chemins des fichiers
+        base_dir = filepath.parent
+        base_name = filepath.stem  # "gru_svm_model" si filepath = "gru_svm_model.pkl"
+        
         # Charger les métadonnées
-        metadata_path = filepath.parent / f"{filepath.stem}_metadata.pkl"
+        metadata_path = base_dir / f"{base_name}_metadata.pkl"
         if metadata_path.exists():
-            metadata = joblib.load(metadata_path)
-            gru_path = Path(metadata['gru_path'])
-            svm_path = Path(metadata['svm_path'])
+            try:
+                metadata = joblib.load(metadata_path)
+                gru_path_str = metadata.get('gru_path', f"{base_name}_gru.h5")
+                svm_path_str = metadata.get('svm_path', f"{base_name}_svm.pkl")
+                
+                # Les chemins dans metadata peuvent être relatifs au projet ou absolus
+                gru_path = Path(gru_path_str)
+                svm_path = Path(svm_path_str)
+                
+                # Si le chemin n'existe pas, essayer depuis base_dir
+                if not gru_path.exists():
+                    # Essayer comme chemin relatif depuis base_dir
+                    gru_path_alt = base_dir / gru_path.name
+                    if gru_path_alt.exists():
+                        gru_path = gru_path_alt
+                    else:
+                        # Essayer avec le nom de base
+                        gru_path = base_dir / f"{base_name}_gru.h5"
+                
+                if not svm_path.exists():
+                    # Essayer comme chemin relatif depuis base_dir
+                    svm_path_alt = base_dir / svm_path.name
+                    if svm_path_alt.exists():
+                        svm_path = svm_path_alt
+                    else:
+                        # Essayer avec le nom de base
+                        svm_path = base_dir / f"{base_name}_svm.pkl"
+                        
+                logger.info(f"  Chemins résolus: GRU={gru_path}, SVM={svm_path}")
+            except Exception as e:
+                logger.warning(f"  ⚠ Erreur lors du chargement des métadonnées: {e}")
+                gru_path = base_dir / f"{base_name}_gru.h5"
+                svm_path = base_dir / f"{base_name}_svm.pkl"
         else:
             # Essayer les noms par défaut
-            gru_path = filepath.parent / f"{filepath.stem}_gru.h5"
-            svm_path = filepath.parent / f"{filepath.stem}_svm.pkl"
+            gru_path = base_dir / f"{base_name}_gru.h5"
+            svm_path = base_dir / f"{base_name}_svm.pkl"
+            logger.info(f"  Chemins par défaut: GRU={gru_path}, SVM={svm_path}")
         
         model = {}
         
         # Charger le GRU
-        if gru_path.exists() and TENSORFLOW_AVAILABLE:
+        if not gru_path.exists():
+            raise FileNotFoundError(f"Fichier GRU non trouvé: {gru_path}")
+        if not TENSORFLOW_AVAILABLE:
+            raise ImportError("TensorFlow n'est pas disponible pour charger le modèle GRU")
+        
+        try:
             model['gru_model'] = tf_load_model(str(gru_path))
             logger.info(f"  ✓ GRU chargé depuis {gru_path}")
             
             # Reconstruire le feature extractor
+            # Note: layers[-4] car l'architecture est: GRU -> Dropout -> BatchNorm -> Dense(24) -> Dropout -> BatchNorm -> Dense(1)
+            # On veut la sortie de Dense(24) qui est à l'index -4
             from tensorflow.keras.models import Model
             model_input = model['gru_model'].layers[0].input
             model['feature_extractor'] = Model(
                 inputs=model_input,
-                outputs=model['gru_model'].layers[-3].output
+                outputs=model['gru_model'].layers[-4].output  # Dense(24) layer - index ajusté pour la nouvelle architecture
             )
-        else:
-            logger.warning(f"  ⚠ GRU non trouvé ou TensorFlow non disponible")
+            logger.info(f"  ✓ Feature extractor créé")
+        except Exception as e:
+            logger.error(f"  ❌ Erreur lors du chargement du GRU: {e}")
+            raise
         
         # Charger le SVM
-        if svm_path.exists():
+        if not svm_path.exists():
+            raise FileNotFoundError(f"Fichier SVM non trouvé: {svm_path}")
+        
+        try:
             model['svm_model'] = joblib.load(svm_path)
             logger.info(f"  ✓ SVM chargé depuis {svm_path}")
-        else:
-            logger.warning(f"  ⚠ SVM non trouvé")
+        except Exception as e:
+            logger.error(f"  ❌ Erreur lors du chargement du SVM: {e}")
+            raise
         
-        logger.info("✓ Modèle GRU-SVM chargé")
+        # Vérifier que le modèle est complet
+        if 'gru_model' in model and 'svm_model' in model and 'feature_extractor' in model:
+            logger.info("✓ Modèle GRU-SVM chargé avec succès")
+        else:
+            missing = [k for k in ['gru_model', 'svm_model', 'feature_extractor'] if k not in model]
+            raise ValueError(f"Modèle GRU-SVM incomplet. Composants manquants: {missing}")
+        
         return model
         
     else:
